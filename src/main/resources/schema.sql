@@ -1,0 +1,54 @@
+CREATE DATABASE IF NOT EXISTS campus_lost_found CHARACTER SET utf8mb4;
+USE campus_lost_found;
+
+CREATE TABLE IF NOT EXISTS students (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_number VARCHAR(10) NOT NULL UNIQUE,
+  full_name VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admins (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  full_name VARCHAR(120) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  salt VARCHAR(64) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  item_name VARCHAR(120) NOT NULL,
+  category VARCHAR(60) NOT NULL,
+  description TEXT,
+  location VARCHAR(150) NOT NULL,
+  item_date DATE NOT NULL,
+  item_type ENUM('LOST','FOUND') NOT NULL,
+  approval ENUM('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
+  claimed BOOLEAN NOT NULL DEFAULT FALSE,
+  attachment VARCHAR(100) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS claims (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  item_id INT NOT NULL,
+  student_id INT NOT NULL,
+  proof TEXT NOT NULL,
+  status ENUM('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  actor_type ENUM('student','admin') NOT NULL,
+  actor_name VARCHAR(120) NOT NULL,
+  action VARCHAR(60) NOT NULL,
+  details VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- The default admin (admin / admin123) is created automatically the first time the program starts.
